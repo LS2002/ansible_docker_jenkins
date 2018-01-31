@@ -1,0 +1,8 @@
+- hosts: server
+  roles:
+    - ../roles/mytest
+
+- hosts: workers
+  roles:
+    - ../roles/mytest
+  strategy: linear
