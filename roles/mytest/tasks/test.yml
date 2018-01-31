@@ -1,0 +1,144 @@
+###########################################################################
+# create test folder
+###########################################################################
+- name: create mytest directory
+  file: path={{ mytest_dir }} state=directory mode=755 owner=root group=root
+  when: install is defined and install|bool
+
+###########################################################################
+# required packages
+###########################################################################
+- name: install required dependencies
+  apt:
+    name={{ item }}
+    state=latest
+  with_items:
+    - corkscrew 
+    - vim
+    - virtualenv
+    - runit
+    - apt-transport-https
+    - aptitude
+    - python-minimal
+    - python-apt
+    - python-setuptools
+    - python-dev
+    - build-essential
+    - nmap
+    - imagemagick
+    - ntp
+  when: install is defined and install|bool and instance_type != "win64"
+
+- name: install python dependencies
+  easy_install:
+    name={{ item }}
+    state=latest
+  with_items:
+    - pip
+  environment:
+    HTTPS_PROXY: "{{ proxy_server }}"
+  when: install is defined and install|bool and instance_type != "win64"
+
+- name: copy the python requirements file
+  copy:
+    src: '../files/requirements.txt'
+    dest: '{{ mytest_dir }}/requirements.txt'
+    owner: root
+    group: root
+    mode: 755
+  when: install is defined and install|bool and instance_type != "win64"
+
+- name: install python dependencies as required.
+  pip:
+    requirements={{ mytest_dir }}/requirements.txt
+    extra_args="--proxy {{ proxy_server }}"
+  environment:
+    HTTPS_PROXY: "{{ proxy_server }}"
+  when: install is defined and install|bool and instance_type != "win64"
+
+- name: add hostname resolution for server
+  lineinfile:
+    dest: /etc/hosts
+    regexp: ''
+    insertafter: EOF
+    line: '{{ server_ip }}   {{ server_name }}'
+  when: install is defined and install|bool and instance_type != "win64"
+
+###########################################################################
+# docker preparation
+###########################################################################
+- name: download docker repo keys
+  shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg --proxy http://proxy.esl.cisco.com:8080| apt-key add -
+  when: install is defined and install|bool and instance_type != "win64"
+
+- name: install docker
+  apt:
+    name=docker.io
+    state=latest
+  when: install is defined and install|bool and instance_type != "win64"
+
+- name: run dpkg
+  command: dpkg --configure -a
+  when: install is defined and install|bool and "workers" in group_names
+
+- name: create systemd docker folder
+  file:
+    path=/etc/systemd/system/docker.service.d
+    state=directory
+    mode=755
+  when: install is defined and install|bool and worker_group_name in group_names
+
+- name: create docker registry certificate directory
+  file:
+    path=/etc/docker/certs.d/{{ server_name }}:5000
+    state=directory
+    owner=root
+    group=root
+    mode=755
+  when: install is defined and install|bool
+
+- name: copy the registry certificate file
+  copy:
+    src: '/root/certs/'
+    dest: '/etc/docker/certs.d/{{ server_name }}:5000/'
+    mode: 644
+    owner: root
+    group: root
+  when: install is defined and install|bool
+
+- name: copy docker overlay config file to systemd directory
+  template:
+    src=../templates/service/docker_overlay.conf
+    dest=/etc/systemd/system/docker.service.d/overlay.conf
+    mode=644
+  when: install is defined and install|bool
+
+- name: copy domain.crt to domain.cert
+  template:
+    src=/etc/docker/certs.d/{{ server_name }}:5000/domain.crt
+    dest=/etc/docker/certs.d/{{ server_name }}:5000/domain.cert
+    mode=644
+  when: install is defined and install|bool
+  ignore_errors: yes
+  
+- name: sync server and worker time
+  shell: date -s "$(curl -sD - {{ server_ip }}| grep '^Date:'|cut -d' ' -f3-6) UTC"
+  when: run is defined and run|bool and worker_group_name in group_names
+  
+- name: start server flask server
+  shell: nohup python {{ mytest_dir }}/server/start_server.py --p {{ mytest_dir }}/result {{ debug }} &
+  when: run is defined and run|bool and "server" in group_names
+  environment:
+    https_proxy: "{{ proxy_server }}"
+  
+- name: start test
+  shell: bash -x {{ mytest_dir }}/worker/start_worker.sh > {{ mytest_dir }}/worker/start_worker.log 2>&1
+  when: run is defined and run|bool and worker_group_name in group_names
+  
+- name: delete packages from vm
+  shell: rpm -e $(rpm -qa mytest*)
+  when: clean is defined and clean|bool and worggker_group_name in group_names  
+  
+- name: stop server flask server
+  shell: sps=`ps -ef|grep start_server.py| grep -v grep|awk '{print $2}'`; if [ "$sps" != "" ]; then kill $sps; fi
+  when: clean is defined and clean|bool and "server" in group_names
