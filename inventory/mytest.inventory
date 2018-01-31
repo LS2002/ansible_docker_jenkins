@@ -1,0 +1,9 @@
+[server]
+192.168.0.10
+
+[workers]
+mytest-worker-1001 ansible_ssh_host=192.168.0.101 ansible_ssh_port=22 instance_subnet=10.0.0.0/21 instance_start=1 instance_end=150 instance_type=u16
+mytest-worker-1002 ansible_ssh_host=192.168.0.102 ansible_ssh_port=22 instance_subnet=10.0.8.0/21 instance_start=151 instance_end=300 instance_type=u16
+mytest-worker-1003 ansible_ssh_host=192.168.0.103 ansible_ssh_port=22 instance_subnet=10.0.16.0/21 instance_start=301 instance_end=450 instance_type=u16
+mytest-worker-1004 ansible_ssh_host=192.168.0.104 ansible_ssh_port=22 instance_subnet=10.0.24.0/21 instance_start=451 instance_end=600 instance_type=u16
+mytest-worker-1005 ansible_ssh_host=192.168.0.105 ansible_ssh_port=22 instance_subnet=10.0.32.0/21 instance_start=601 instance_end=750 instance_type=u16
