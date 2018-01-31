@@ -1,0 +1,11 @@
+mytest_dir: "/local/mytest"
+
+cert_dir: "/etc/docker/certs.d"
+registry_dir: "{{ mytest_dir }}/registry"
+registry_name: "mytest_registry"
+
+cluster_password: "abcdef"
+container_hostname_prefix: "mytest"
+dockerfile: "Dockerfile_{{ container_os_platform }}"
+
+proxy_server: "http://192.168.0.20:3128"
