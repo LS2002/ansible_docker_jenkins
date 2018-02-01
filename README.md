@@ -68,6 +68,7 @@ Connect-VIServer test-vc.mycompany.com -User administrator@vsphere.local -Passwo
 ### Create Inventory `mytest.inventory`
 * Use Google Spreadsheet to organize VMs in the format of: vm_name,vm_ip,container_subnet,instance_start,instance_end
 * Add [server] along with its ip, and list of [workers] with data in above spreadsheet
+* Choose a /21 [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks) subnet to accomodate 2000 containers per VM
 
 ### Prepare Server `mytest-server`
 * Clone a VM from golden VM and use it as Server
