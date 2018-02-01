@@ -1,0 +1,9 @@
+FROM ubuntu:16
+ENV http_proxy {{ proxy_server }}
+ARG CACHEBUST=1
+RUN apt-get -y update
+ARG CACHEBUST=0
+RUN apt-get -y install rpm vim lsb-release python python-dev openssl curl iptables netcat net-tools python-setuptools python-netifaces python-requests python-pip ipset iputils-ping dmidecode cpio
+RUN yes|pip install --upgrade mechanize BeautifulSoup requests --proxy {{ proxy_server }}
+ENV http_proxy {{ proxy_server_local }}
+CMD ["{{ mytest_dir }}/worker/run_test_executor.sh"]
