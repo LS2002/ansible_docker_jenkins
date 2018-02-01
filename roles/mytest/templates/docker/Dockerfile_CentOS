@@ -1,0 +1,11 @@
+FROM centos:7
+ENV http_proxy {{ proxy_server }}
+RUN yum update -y
+RUN yum install -y dmidecode redhat-lsb-core net-tools curl lsof epel-release \
+                 iptables-services openssl which python python-dev ipset \
+                 curl netcat python-setuptools python-netifaces python-requests
+RUN yum install -y python-pip
+RUN yes|pip install --upgrade mechanize BeautifulSoup requests --proxy {{ proxy_server }}
+RUN easy_install supervisor
+ENV http_proxy {{ proxy_server_local }}
+CMD ["{{ mytest_dir }}/worker/run_test_executor.sh"]
