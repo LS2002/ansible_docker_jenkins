@@ -10,7 +10,7 @@ netifaces==0.10.5
 python-gflags==3.1.1
 pytz==2017.2
 PyYAML==5.4
-requests==2.13.0
+requests==2.20.0
 tabulate==0.7.7
 texttable==0.8.8
 urllib3==1.26.5
