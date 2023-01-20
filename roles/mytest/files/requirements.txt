@@ -15,5 +15,5 @@ tabulate==0.7.7
 texttable==0.8.8
 urllib3==1.26.5
 websocket-client==0.40.0
-mechanize==0.3.3
+mechanize==0.4.6
 BeautifulSoup==3.2.1
